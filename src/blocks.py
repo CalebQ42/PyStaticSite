@@ -8,8 +8,26 @@ valid_blocks = [
     "ordered_list"
 ]
 
+def markdown_to_blocks(text):
+    code_block_spl = text.split("```")
+    if len(code_block_spl) == 1:
+        return text.split("\n\n")
+    if len(code_block_spl)%2 == 0:
+        raise Exception("uneven code blocks (```). Invalid markdown")
+    middle = False
+    out = []
+    for s in code_block_spl:
+        if not middle:
+            middle = True
+            if s != "":
+                out += s.split("\n\n")
+            continue
+        middle = False
+        out.append("```"+s+"```")
+    return out
+
 def block_to_block_type(block: str):
-    if block.startswith("# "):
+    if block.startswith("#") and block.count(" ") > 0 and block.split(" ")[0].replace("#", "") == "":
         return valid_blocks[1]
     if block.startswith("```") and block.endswith("```"):
         return valid_blocks[2]
@@ -27,24 +45,7 @@ def block_to_block_type(block: str):
             if not l.startswith(str(num)+"."):
                 valid = False
                 break
+            num += 1
         if valid:
             return valid_blocks[5]
-    return valid_blocks[0] 
-
-def markdown_to_blocks(text):
-    code_block_spl = text.split("```")
-    if len(code_block_spl) == 1:
-        return text.split("\n\n")
-    if len(code_block_spl)%2 == 0:
-        raise Exception("uneven code blocks (```). Invalid markdown")
-    middle = False
-    out = []
-    for s in code_block_spl:
-        if not middle:
-            middle = True
-            if s == "":
-                out += s.split("\n\n")
-            continue
-        middle = False
-        out.append("```"+s+"```")
-    return out
+    return valid_blocks[0]

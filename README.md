@@ -1,2 +1,3 @@
 # PyStaticSite
+
 Boot.Dev Project

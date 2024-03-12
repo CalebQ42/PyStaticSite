@@ -1,10 +1,11 @@
 import unittest
+from htmlnode import LeafNode, ParentNode
 
 from split_nodes import valid_types
-from helpers import text_to_textnodes
+from helpers import mk_to_html_node, text_to_textnodes
 from textnode import TextNode
 
-class Tests(unittest.TestCase):
+class TestHelpers(unittest.TestCase):
     def test_text_to_nodes(self):
         text = "This is **text** with an *italic* word and a `code block` and an ![image](https://i.imgur.com/zjjcJKZ.png) and a [link](https://boot.dev)"
         self.assertEqual(
@@ -21,6 +22,78 @@ class Tests(unittest.TestCase):
                 TextNode(" and a ", valid_types[0]),
                 TextNode("link", valid_types[4], "https://boot.dev"),
             ]
+        )
+    
+    def test_mk_to_html_nodes(self):
+        text = """
+# Heading *with italics*
+
+### Code
+
+```
+let's also do some **code**
+
+
+
+with a bunch of enters to confuse things*
+```
+
+## Lists
+
+* How about an **unorder**
+* List [with a link](https://darkstorm.tech)
+
+1. Or even an ordered list
+2. With an _image_
+3. ![image](https://darkstorm.tech/favicon.png)
+
+> And don't forget the **quotes** with `inline code`
+"""
+        self.assertEqual(
+            mk_to_html_node(text).to_html(),
+            ParentNode("div",[
+                ParentNode("h1", [
+                    LeafNode(value="Heading "),
+                    LeafNode("i", "with italics")
+                ]),
+                ParentNode("h3", [
+                    LeafNode(value="Code")
+                ]),
+                ParentNode("pre",[
+                    LeafNode("code", "let's also do some **code**\n\n\n\nwith a bunch of enters to confuse things*")
+                ]),
+                ParentNode("h2", [
+                    LeafNode(value="Lists")
+                ]),
+                ParentNode("ul",[
+                    ParentNode("li",[
+                        LeafNode(value="How about an "),
+                        LeafNode("b", "unorder")
+                    ]),
+                    ParentNode("li", [
+                        LeafNode(value="List "),
+                        LeafNode("a", "with a link", {"href": "https://darkstorm.tech"})
+                    ])
+                ]),
+                ParentNode("ol", [
+                    ParentNode("li", [
+                        LeafNode(value="Or even an ordered list")
+                    ]),
+                    ParentNode("li", [
+                        LeafNode(value="With an "),
+                        LeafNode("i", "image")
+                    ]),
+                    ParentNode("li", [
+                        LeafNode("img", "", props={"alt": "image", "src": "https://darkstorm.tech/favicon.png"})
+                    ])
+                ]),
+                ParentNode("blockquote", [
+                    LeafNode(value="And don't forget the "),
+                    LeafNode("b", "quotes"),
+                    LeafNode(value=" with "),
+                    LeafNode("code", "inline code")
+                ])
+            ]).to_html()
         )
 
 if __name__ == "__main__":
